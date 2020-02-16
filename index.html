@@ -12,40 +12,74 @@
 <body>
     <canvas id="canvas" width="100" height="100"></canvas>
     <script>
-        //画线
+        //选择canvas元素
         let canvas = document.getElementById("canvas");
-
+        //设置canvas宽高为浏览器可见区域宽高
         canvas.width = document.documentElement.clientWidth;
         canvas.height = document.documentElement.clientHeight;
 
+        //使用canvas绘制图形
         let ctx = canvas.getContext("2d");
-
-        let painting = false;
-
-
+        //设置填充绘画的颜色
         ctx.fillStyle = "black";
+        //设置图形轮廓的颜色
         ctx.strokeStyle = 'none';
+        //设置线段的宽度
+        ctx.lineWidth = 8;
+        //设置绘制每一条线段末端的属性，默认值以方形结束
+        ctx.lineCap = "round";
 
-        canvas.onmousedown = () => {
-            painting = true;
+        /*drawLine函数定义绘制两点相连的线段*/
+        function drawLine(x1, y1, x2, y2) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
         }
 
-        canvas.onmousemove = (e) => {
-            if (painting === true) {
-                // console.log(e.clientX);
-                // console.log(e.clientY);
-                // ctx.fillRect(e.clientX - 5, e.clientY - 5, 10, 10);
-                ctx.beginPath();
-                ctx.arc(e.clientX, e.clientY, 10, 0, 2 * Math.PI, false);
-                ctx.stroke();
-                ctx.fill()
-            } else {
-                console.log('什么都不做');
+        //定义painting变量，表示是否绘制
+        let painting = false;
+        //定义last变量，用于记录上一次点击或触摸的坐标位置
+        let last;
+
+        //使用js检测是否是触屏设备
+        var isTouchDevice = 'ontouchstart' in document.documentElement;
+
+
+        if (isTouchDevice) {
+            //触屏设备添加触摸事件，获取位置并记录上一次的触屏坐标
+            canvas.ontouchstart = (e) => {
+                let x = e.touches[0].clientX;
+                let y = e.touches[0].clientY;
+                last = [x, y];
             }
-        }
 
-        canvas.onmouseup = () => {
-            painting = false;
+            //添加触摸移动事件，用户在屏幕上移动手指时，绘制直线，并更新触屏坐标
+            canvas.ontouchmove = (e) => {
+                let x = e.touches[0].clientX;
+                let y = e.touches[0].clientY;
+                drawLine(last[0], last[1], x, y);
+                last = [x, y]; //更新上一次的触屏坐标
+            }
+        } else {
+            //如果不是触屏设备，则添加鼠标事件，鼠标按下时，开始绘制并记录上一次鼠标点击的坐标
+            canvas.onmousedown = (e) => {
+                painting = true;
+                last = [e.clientX, e.clientY];
+            }
+
+            //添加鼠标移动事件，绘制直线，并更新鼠标位置
+            canvas.onmousemove = (e) => {
+                if (painting === true) {
+                    drawLine(last[0], last[1], e.clientX, e.clientY);
+                    last = [e.clientX, e.clientY]; //更新上一次的鼠标位置
+                }
+            }
+
+            //添加鼠标点击松开事件，结束绘制
+            canvas.onmouseup = () => {
+                painting = false;
+            }
         }
     </script>
 </body>
